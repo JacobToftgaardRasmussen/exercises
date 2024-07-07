@@ -57,3 +57,21 @@ const guestList: string[] = [
 	'Victor',
 	'Wendy',
 ];
+
+class App {
+	public main() {
+		queue.forEach((person) => {
+			if (guestList.includes(person)) {
+				console.log(`Hello ${person}, welcome to the party!`);
+			} else {
+				console.log(
+					`I am sorry ${person}, you are unfortunately not on the guest list`
+				);
+			}
+		});
+	}
+}
+
+const app = new App();
+
+app.main();
