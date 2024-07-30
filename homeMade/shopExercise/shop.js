@@ -32,44 +32,44 @@ function showAvailableProducts() {
   console.log('--------------------------------');
 }
 
-function inputIsValid(input) {
+function validateInput(input) {
   const arguments = input.split(' ')
-  const product = arguments[0]
-  const amount = Number(arguments[1])
-  for (let i = 0; i < products.length; i++) {
-    const p = products[i];
-    if (p.name === product && amount <= p.stock) {
-      return true
-    }
+  if (arguments.length !== 2) {
+    throw new Error('Please input a product name and an amount separated by a space')
   }
-  return false
+  const product = arguments[0]
+  if (!products.map(p => p.name).includes(product)) {
+    throw new Error(`Sorry we don't have that. You asked for ${product}`)
+  }
+  const amount = Number(arguments[1])
+  const productStatus = products.find(p => p.name === product)
+  if (amount > productStatus.stock) {
+    throw new Error(`Sorry we only have ${productStatus.stock} pieces of ${product}. You asked for ${amount}`)
+  }
 }
 
 async function askForInput() {
   const answer = await input({ message: 'What product would you like?' })
-  try {
-    if (inputIsValid(answer)) {
-      return answer
-    } else {
-      console.log('Your input was not valid');
-    }
-  } catch (error) {
-    console.log('An error happened because your input was not valid');
-  }
+  return answer
 }
 
 async function start() {
   printWelcomeMessage()
+  showAvailableProducts()
 
   while (true) {
-    showAvailableProducts()
-    const answer = await askForInput()
-    const arguments = answer.split(' ')
-    const product = arguments[0]
-    const amount = Number(arguments[1])
-    const indexOfWantedProduct = products.findIndex(p => p.name === product)
-    const newAmount = products[indexOfWantedProduct].stock - amount
-    products[indexOfWantedProduct] = { ...products[indexOfWantedProduct], stock: newAmount }
+    const userInput = await askForInput()
+    try {
+      validateInput(userInput)
+      const arguments = userInput.split(' ')
+      const product = arguments[0]
+      const amount = Number(arguments[1])
+      const indexOfWantedProduct = products.findIndex(p => p.name === product)
+      const newAmount = products[indexOfWantedProduct].stock - amount
+      products[indexOfWantedProduct] = { ...products[indexOfWantedProduct], stock: newAmount }
+    } catch (error) {
+      console.log(error.message)
+    }
     showAvailableProducts()
   }
 }
