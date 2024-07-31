@@ -10,13 +10,14 @@ const products = [
     stock: 12
   },
   {
-    name: 'chocolate bars',
+    name: 'chocolate_bar',
     stock: 4
   },
 ]
 
 function printWelcomeMessage() {
   console.log('Welcome to the console shop!');
+  console.log('You can exit the shop by inputting "quit" or "q"');
 }
 
 function printProduct(product) {
@@ -34,8 +35,11 @@ function showAvailableProducts() {
 
 function validateInput(input) {
   const arguments = input.split(' ')
+  if (arguments[0] === 'quit' || arguments[0] === 'q') {
+    exitShop()
+  }
   if (arguments.length !== 2) {
-    throw new Error('Please input a product name and an amount separated by a space')
+    throw new Error(`Please input a product name and an amount separated by a space. Your input was: ${input}`)
   }
   const product = arguments[0]
   if (!products.map(p => p.name).includes(product)) {
@@ -46,6 +50,18 @@ function validateInput(input) {
   if (amount > productStatus.stock) {
     throw new Error(`Sorry we only have ${productStatus.stock} pieces of ${product}. You asked for ${amount}`)
   }
+  return { product, amount }
+}
+
+function exitShop() {
+  console.log('Bye bye');
+  process.exit()
+}
+
+function updateStock(product, amount) {
+  const indexOfWantedProduct = products.findIndex(p => p.name === product)
+  const newAmount = products[indexOfWantedProduct].stock - amount
+  products[indexOfWantedProduct] = { ...products[indexOfWantedProduct], stock: newAmount }
 }
 
 async function askForInput() {
@@ -53,25 +69,34 @@ async function askForInput() {
   return answer
 }
 
-async function start() {
-  printWelcomeMessage()
-  showAvailableProducts()
+function handleSuccessfulPurchase(product, amount) {
+  updateStock(product, amount)
+  console.clear()
+  console.log('Thank you for your purchase. Would you like to make another purchase?');
+}
 
+function handleFailedPurchase(error) {
+  console.clear()
+  console.log(error.message)
+}
+
+async function mainLoop() {
   while (true) {
     const userInput = await askForInput()
     try {
-      validateInput(userInput)
-      const arguments = userInput.split(' ')
-      const product = arguments[0]
-      const amount = Number(arguments[1])
-      const indexOfWantedProduct = products.findIndex(p => p.name === product)
-      const newAmount = products[indexOfWantedProduct].stock - amount
-      products[indexOfWantedProduct] = { ...products[indexOfWantedProduct], stock: newAmount }
+      const { product, amount } = validateInput(userInput)
+      handleSuccessfulPurchase(product, amount)
     } catch (error) {
-      console.log(error.message)
+      handleFailedPurchase(error)
     }
     showAvailableProducts()
   }
+}
+
+async function start() {
+  printWelcomeMessage()
+  showAvailableProducts()
+  mainLoop()
 }
 
 start()
