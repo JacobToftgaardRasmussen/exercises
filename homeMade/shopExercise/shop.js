@@ -13,6 +13,10 @@ const products = [
     name: 'chocolate_bar',
     stock: 4
   },
+  {
+    name: 'computer_juice',
+    stock: 8
+  },
 ]
 
 function printWelcomeMessage() {
